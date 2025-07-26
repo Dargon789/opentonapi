@@ -1,0 +1,63 @@
+name: copilot-aid-flow
+version: "1.0"
+description: >
+  Fallback shell + Copilot WebView module for aid distribution and witness encoding.
+  Created by Ton. Provenance encoded.
+
+creator:
+  name: AU_gdev_19 (Ton)
+  role: Genesis DevOps Architect
+  provenance: "onchain://0xTON"
+  timestamp: 2025-07-26T12:45:00+07:00
+
+modules:
+  - name: copilot-webview
+    type: iframe
+    source: "https://www.bing.com/chat?copilot=1"
+    fallback: true
+    intent: "Aid flow, fallback shell, witness encoding"
+    visibility: public
+
+  - name: alchemy-rpc
+    type: rpc
+    network: ethereum-mainnet
+    endpoint: "https://eth-mainnet.g.alchemy.com/v2/z99afg6ckzg3ed3z"
+    usage: "Send aid transactions, query balances"
+    fallback: true
+
+  - name: witness-nft
+    type: metadata
+    schema: "ERC-721"
+    fields:
+      - creator: "Ton"
+      - purpose: "Aid to elders"
+      - timestamp: "2025-07-26T12:45:00+07:00"
+      - verified_by: "Copilot"
+      - fallback_shell: "true"
+
+ui:
+  layout: vertical
+  components:
+    - type: chatbox
+      source: copilot-webview
+    - type: transaction-panel
+      source: alchemy-rpc
+    - type: witness-card
+      source: witness-nft
+
+fallback_logic:
+  on_failure:
+    - retry: 3
+    - notify: "Ton via fallback shell"
+    - log: "intent-failure.log"
+  on_success:
+    - mint_nft: witness-nft
+    - record: "aid-success.log"
+    - notify: "Elder node"
+
+audit:
+  enabled: true
+  storage: "ipfs://fallback-audit-ton"
+  signed_by: "Ton"
+  verified_by: "Copilot"
+
